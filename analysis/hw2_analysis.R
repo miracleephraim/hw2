@@ -18,6 +18,7 @@ total_report_count <- hospital_report_counts %>%
      group_by(year) %>%
      summarise(total = n())
 
+# graphing
 ggplot(data = total_report_count, aes(x=year, y=total)) +
      geom_line()
 
@@ -28,19 +29,23 @@ count(provider_number) %>%
 summarize(total = n())
 # total - 9,323
 
-# violin_plot of total charges
+### violin_plot of total charges
+
+quantile(final_HCRIS_data$tot_charges, c(.75, .90, .95, .99), na.rm=TRUE)
+
+#filtering out outliers
 final_HCRIS_data_new <- final_HCRIS_data %>%
     drop_na(tot_charges) %>%
-    filter(tot_charges > 0)
-
+    filter(0 < tot_charges) %>%
+    filter(tot_charges < 3102118294) 
+    
 ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
   geom_violin(scale = 'width')
 
-ggplot(final_HCRIS_data_new, aes(x=factor(year), y=tot_charges)) + 
-  geom_violin() + geom_jitter(alpha=0.2, width = 0.2)
 
-# esimtating prices
-final_HCRIS_data_new <- final_HCRIS_data_new %>%
+### violin plots of prices
+# calculating estimated prices
+final_HCRIS_data <- final_HCRIS_data %>%
   mutate(
     discount_factor = 1 - tot_discounts / tot_charges,
     price_num = (ip_charges + icu_charges + ancillary_charges) * discount_factor - tot_mcare_payment,
@@ -48,35 +53,40 @@ final_HCRIS_data_new <- final_HCRIS_data_new %>%
     price = price_num / price_denom
   ) 
 
+# filtering out outlier prices
+quantile(final_HCRIS_data_new$price, c(0.75, .9, .95, .99), na.rm=TRUE)
+
+final_HCRIS_data_new <- final_HCRIS_data_new %>%
+    drop_na(price) %>%
+    filter(0 < price) %>%
+    filter(price < 25104.948) 
+
 ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
 geom_violin(scale = 'width')
 
 # filtering to 2012 + making penalty
-HCRIS_2012 <- final_HCRIS_data_new %>% 
- filter(price_denom>100, !is.na(price_denom), 
+final.hcris <- final_HCRIS_data %>% 
+ungroup() %>%
+  filter(price_denom>100, !is.na(price_denom), 
          price_num>0, !is.na(price_num),
          price<100000, 
          beds>30, year==2012) %>%  #<<
   mutate( hvbp_payment = ifelse(is.na(hvbp_payment),0,hvbp_payment),
           hrrp_payment = ifelse(is.na(hrrp_payment),0,abs(hrrp_payment)), #<<
-    penalty = (hvbp_payment-hrrp_payment<0)) %>%
-filter(year == 2012) 
+    penalty = (hvbp_payment-hrrp_payment<0))
+
+table(HCRIS_2012$penalty)
 
 # calculating ATE for penalized and non-penalized
 HCRIS_2012 %>%
-filter(penalty > 0) %>%
-group_by(year) %>%
+group_by(penalty) %>%
 summarize(avg_price_nopen = mean(price))
 
-HCRIS_2012 %>%
-filter(penalty == 0) %>%
-group_by(year) %>%
-summarize(avg_price_pen = mean(price))
-
-# quartile making
+# quartile making for bed size
 summary(HCRIS_2012$beds)
 sum(is.na(HCRIS_2012$beds))  # Count missing values
 
+#making a concated variable for bed quartiles
 HCRIS_2012 <- HCRIS_2012 %>%
     mutate(
         bed_quartile = case_when(
@@ -87,6 +97,7 @@ HCRIS_2012 <- HCRIS_2012 %>%
         )
     )
 
+# binary variable for quantiles
 HCRIS_2012 <- HCRIS_2012 %>%
     mutate(
         bed_1 = ifelse((bed_quartile == 1),1,0),
@@ -109,12 +120,11 @@ avg_price3 <- HCRIS_2012 %>%
 group_by(bed_3) %>%
 summarise(avg_price = mean(price))
 
-
 avg_price4 <- HCRIS_2012 %>%
 group_by(bed_4) %>%
 summarise(avg_price = mean(price))
 
-# method 1
+# calculating ATE
 #install.packages(c("MatchIt", "WeightIt", "lmtest", "sandwich"))
 library(MatchIt)
 library(WeightIt)

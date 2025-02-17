@@ -7,11 +7,22 @@
 #
 #
 #
+library(ggplot2)
+library(dplyr)
+library(MatchIt)
+library(WeightIt)
+library(sandwich)
+library(lmtest)
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table, gdata)
+load("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/submission/hw_workspace.Rdata")
+print(ls()) 
+
+#
+#
+#
 #
 #| echo: false
-#| label: tbl-plans
-#| tbl-cap: All plan types in 2015
-load("C:/Users/mirac/Documents/GitHub/econ470_ma/hw1/submission/hw_workspace.Rdata")
 ggplot(data = total_report_count, aes(x=year, y=total)) +
      geom_line()
 
@@ -19,16 +30,16 @@ ggplot(data = total_report_count, aes(x=year, y=total)) +
 #
 #
 #
+#| echo: false
+total_report_count <- hospital_report_counts %>%
+     group_by(year) %>%
+     summarise(total = n())
 
-knitr::kable(unique_provider_nos, 
-             col.names=c("Plan Type","Count"),
-             format.args=list(big.mark=","), booktabs = TRUE)
-
 #
 #
 #
 #
-
+#| echo: false
 ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
   geom_violin(scale = 'width')
 
@@ -36,13 +47,14 @@ ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
 #
 #
 #
+#| echo: false
 ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
 geom_violin(scale = 'width')
 #
 #
 #
 #
-
+#| echo: false
 HCRIS_2012 %>%
 filter(penalty > 0) %>%
 group_by(year) %>%
@@ -57,7 +69,7 @@ summarize(avg_price_pen = mean(price))
 #
 #
 #
-
+#| echo: false
 HCRIS_2012 %>%
 group_by(bed_1) %>%
 summarise(avg_price = mean(price))
@@ -79,7 +91,7 @@ summarise(avg_price = mean(price))
 #
 #
 #
-
+#| echo: falsew
 print(match_iv_ate)
 print(match_maha_ate)
 print(ipw_ate)
