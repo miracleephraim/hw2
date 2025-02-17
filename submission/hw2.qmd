@@ -1,0 +1,92 @@
+---
+title: "hw2"
+author: "miracle ephraim"
+format: pdf
+editor: visual
+documentclass: article
+---
+
+1. Hospital reports over time
+```{r} 
+#| echo: false
+#| label: tbl-plans
+#| tbl-cap: All plan types in 2015
+load("C:/Users/mirac/Documents/GitHub/econ470_ma/hw1/submission/hw_workspace.Rdata")
+ggplot(data = total_report_count, aes(x=year, y=total)) +
+     geom_line()
+
+```
+
+2. Number of unique hospital ids
+```{r}
+
+knitr::kable(unique_provider_nos, 
+             col.names=c("Plan Type","Count"),
+             format.args=list(big.mark=","), booktabs = TRUE)
+
+```
+
+3. Distribution of total charges
+```{r}
+
+ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
+  geom_violin(scale = 'width')
+
+```
+
+4. Distribution of price
+```{r}
+ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
+geom_violin(scale = 'width')
+```
+
+5. Average prices of penalized and non-penalized hospitals
+```{r}
+
+HCRIS_2012 %>%
+filter(penalty > 0) %>%
+group_by(year) %>%
+summarize(avg_price_nopen = mean(price))
+
+HCRIS_2012 %>%
+filter(penalty == 0) %>%
+group_by(year) %>%
+summarize(avg_price_pen = mean(price))
+
+```
+
+6. Bed size quantiles and their average prices
+```{r}
+
+HCRIS_2012 %>%
+group_by(bed_1) %>%
+summarise(avg_price = mean(price))
+
+avg_price2 <- HCRIS_2012 %>%
+group_by(bed_2) %>%
+summarise(avg_price = mean(price))
+
+avg_price3 <- HCRIS_2012 %>%
+group_by(bed_3) %>%
+summarise(avg_price = mean(price))
+
+
+avg_price4 <- HCRIS_2012 %>%
+group_by(bed_4) %>%
+summarise(avg_price = mean(price))
+
+```
+
+7. Calculating different estimators
+```{r}
+
+print(match_iv_ate)
+print(match_maha_ate)
+print(ipw_ate)
+print(lm_ate)
+
+```
+
+8. 
+9. 
+10. 
