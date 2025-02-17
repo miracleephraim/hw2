@@ -1,9 +1,7 @@
 ---
 title: "hw2"
 author: "miracle ephraim"
-format: pdf
-editor: visual
-documentclass: article
+format: html
 ---
 
 ```{r setup, include=FALSE}
