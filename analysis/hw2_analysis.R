@@ -5,7 +5,7 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table
 #loading dataset
 final_HCRIS_data <- readRDS("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/data/HCRIS_Data.rds")
 
-
+load("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/submission/hw_workspace.Rdata")
 # calculating total reports for each hopsital per year
 hospital_report_counts <- final_HCRIS_data %>% 
     group_by(year,street) %>%
@@ -31,16 +31,17 @@ summarize(total = n())
 
 ### violin_plot of total charges
 
-quantile(final_HCRIS_data$tot_charges, c(.75, .90, .95, .99), na.rm=TRUE)
+quantile(final_HCRIS_data$tot_charges, c(0.01, .75, .90, .95, .99), na.rm=TRUE)
 
 #filtering out outliers
 final_HCRIS_data_new <- final_HCRIS_data %>%
     drop_na(tot_charges) %>%
-    filter(0 < tot_charges) %>%
+    filter(1802430 < tot_charges) %>%
     filter(tot_charges < 3102118294) 
     
 ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
-  geom_violin(scale = 'width')
+  geom_violin(scale = 'width') +
+  scale_y_continuous(trans='log10')
 
 
 ### violin plots of prices
@@ -54,15 +55,16 @@ final_HCRIS_data <- final_HCRIS_data %>%
   ) 
 
 # filtering out outlier prices
-quantile(final_HCRIS_data_new$price, c(0.75, .9, .95, .99), na.rm=TRUE)
+quantile(final_HCRIS_data$price, c(0.01, 0.75, .9, .95, .99), na.rm=TRUE)
 
-final_HCRIS_data_new <- final_HCRIS_data_new %>%
+final_HCRIS_data_new <- final_HCRIS_data %>%
     drop_na(price) %>%
-    filter(0 < price) %>%
-    filter(price < 25104.948) 
+    filter(984.6199 < price) %>%
+    filter(price < 25104.948)
 
 ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
-geom_violin(scale = 'width')
+  geom_violin(scale = 'width') +
+  scale_y_continuous(trans='log10')
 
 # filtering to 2012 + making penalty
 final.hcris <- final_HCRIS_data %>% 

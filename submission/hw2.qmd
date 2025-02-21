@@ -1,7 +1,9 @@
 ---
-title: "hw2"
-author: "miracle ephraim"
-format: html
+title: HW2
+author: Miracle Ephraim
+format:
+  pdf:
+    documentclass: article
 ---
 
 ```{r setup, include=FALSE}
@@ -39,7 +41,8 @@ total_report_count <- hospital_report_counts %>%
 ```{r}
 #| echo: false
 ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
-  geom_violin(scale = 'width')
+  geom_violin(scale = 'width') +
+  scale_y_continuous(trans='log10')
 
 ```
 
@@ -47,7 +50,8 @@ ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
 ```{r}
 #| echo: false
 ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
-geom_violin(scale = 'width')
+  geom_violin(scale = 'width') +
+  scale_y_continuous(trans='log10')
 ```
 
 5. Average prices of penalized and non-penalized hospitals
