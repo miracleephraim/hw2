@@ -6,6 +6,8 @@ pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table
 final_HCRIS_data <- readRDS("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/data/HCRIS_Data.rds")
 
 load("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/submission/hw_workspace.Rdata")
+
+## QUESTION 1
 # calculating total reports for each hopsital per year
 hospital_report_counts <- final_HCRIS_data %>% 
     group_by(year,street) %>%
@@ -22,12 +24,16 @@ total_report_count <- hospital_report_counts %>%
 ggplot(data = total_report_count, aes(x=year, y=total)) +
      geom_line()
 
+## QUESTION 2
+
 # how many unique hospital ids exist after combining provider numbers
 unique_provider_nos <- final_HCRIS_data %>%
 group_by(provider_number) %>%
 count(provider_number) %>%
 summarize(total = n())
 # total - 9,323
+
+tibble(unique_hospital_ids = nrow(unique_provider_nos))
 
 ### violin_plot of total charges
 
@@ -43,6 +49,7 @@ ggplot(final_HCRIS_data_new, aes(x = factor(year), y = tot_charges)) +
   geom_violin(scale = 'width') +
   scale_y_continuous(trans='log10')
 
+## QUESTION 4
 
 ### violin plots of prices
 # calculating estimated prices
@@ -66,30 +73,30 @@ ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
   geom_violin(scale = 'width') +
   scale_y_continuous(trans='log10')
 
+# QUESTION 5
+
 # filtering to 2012 + making penalty
-final.hcris <- final_HCRIS_data %>% 
-ungroup() %>%
+hcris_2012 <- final_HCRIS_data %>% ungroup() %>%
   filter(price_denom>100, !is.na(price_denom), 
          price_num>0, !is.na(price_num),
          price<100000, 
          beds>30, year==2012) %>%  #<<
   mutate( hvbp_payment = ifelse(is.na(hvbp_payment),0,hvbp_payment),
           hrrp_payment = ifelse(is.na(hrrp_payment),0,abs(hrrp_payment)), #<<
-    penalty = (hvbp_payment-hrrp_payment<0))
+    penalty = (hvbp_payment-hrrp_payment<0)) #<<
 
-table(HCRIS_2012$penalty)
+table(hcris_2012$penalty)
 
 # calculating ATE for penalized and non-penalized
-HCRIS_2012 %>%
-group_by(penalty) %>%
-summarize(avg_price_nopen = mean(price))
+mean.pen <- round(mean(hcris_2012$price[which(hcris_2012$penalty==1)]),2)
+mean.nopen <- round(mean(hcris_2012$price[which(hcris_2012$penalty==0)]),2)     
 
 # quartile making for bed size
-summary(HCRIS_2012$beds)
-sum(is.na(HCRIS_2012$beds))  # Count missing values
+summary(hcris_2012$beds)
+sum(is.na(hcris_2012$beds))  # Count missing values
 
 #making a concated variable for bed quartiles
-HCRIS_2012 <- HCRIS_2012 %>%
+hcris_2012 <- hcris_2012 %>%
     mutate(
         bed_quartile = case_when(
             beds > 0 & beds <= 91 ~ 1,
@@ -100,7 +107,7 @@ HCRIS_2012 <- HCRIS_2012 %>%
     )
 
 # binary variable for quantiles
-HCRIS_2012 <- HCRIS_2012 %>%
+hcris_2012 <- hcris_2012 %>%
     mutate(
         bed_1 = ifelse((bed_quartile == 1),1,0),
         bed_2 = ifelse((bed_quartile == 2),1,0),
@@ -108,68 +115,132 @@ HCRIS_2012 <- HCRIS_2012 %>%
         bed_4 = ifelse((bed_quartile == 4),1,0)
     )
 
-table(HCRIS_2012$bed_quartile)
+table(hcris_2012$bed_quartile)
 
-HCRIS_2012 %>%
+hcris_2012 %>%
 group_by(bed_1) %>%
 summarise(avg_price = mean(price))
 
-avg_price2 <- HCRIS_2012 %>%
+avg_price2 <- hcris_2012 %>%
 group_by(bed_2) %>%
 summarise(avg_price = mean(price))
 
-avg_price3 <- HCRIS_2012 %>%
+avg_price3 <- hcris_2012 %>%
 group_by(bed_3) %>%
 summarise(avg_price = mean(price))
 
-avg_price4 <- HCRIS_2012 %>%
+avg_price4 <- hcris_2012 %>%
 group_by(bed_4) %>%
 summarise(avg_price = mean(price))
 
+# alt code
+library(dplyr)
+library(tidyr)
+library(knitr)
+
+library(dplyr)
+library(knitr)
+
+# Compute average price for each quartile group (inside and outside)
+avg_price1 <- hcris_2012 %>%
+  summarise(`Avg Price (In Group)` = mean(price[bed_1 == 1], na.rm = TRUE),
+            `Avg Price (Not in Group)` = mean(price[bed_1 == 0], na.rm = TRUE)) %>%
+  mutate(`Bed Quartile` = "bed_1")
+
+avg_price2 <- hcris_2012 %>%
+  summarise(`Avg Price (In Group)` = mean(price[bed_2 == 1], na.rm = TRUE),
+            `Avg Price (Not in Group)` = mean(price[bed_2 == 0], na.rm = TRUE)) %>%
+  mutate(`Bed Quartile` = "bed_2")
+
+avg_price3 <- hcris_2012 %>%
+  summarise(`Avg Price (In Group)` = mean(price[bed_3 == 1], na.rm = TRUE),
+            `Avg Price (Not in Group)` = mean(price[bed_3 == 0], na.rm = TRUE)) %>%
+  mutate(`Bed Quartile` = "bed_3")
+
+avg_price4 <- hcris_2012 %>%
+  summarise(`Avg Price (In Group)` = mean(price[bed_4 == 1], na.rm = TRUE),
+            `Avg Price (Not in Group)` = mean(price[bed_4 == 0], na.rm = TRUE)) %>%
+  mutate(`Bed Quartile` = "bed_4")
+
+# Combine results into one table
+final_table <- bind_rows(avg_price1, avg_price2, avg_price3, avg_price4) %>%
+  relocate(`Bed Quartile`, `Avg Price (In Group)`, `Avg Price (Not in Group)`)  # Ensure correct order
+
+# Display table
+kable(final_table, caption = "Average Price by Bed Quartile Group")
+
+
 # calculating ATE
-#install.packages(c("MatchIt", "WeightIt", "lmtest", "sandwich"))
+#install.packages(c("MatchIt", "WeightIt", "lmtest", "sandwich", "Matching"))
 library(MatchIt)
 library(WeightIt)
 library(sandwich)
 library(lmtest)
+library(Matching)
+library(dplyr)
 
-# Create inverse variance weights for each bed_quartile
-HCRIS_2012 <- HCRIS_2012 %>%
-  group_by(bed_quartile) %>%
-  mutate(inv_var = 1 / var(price)) %>%
-  ungroup()
+# Select relevant variables and filter missing values
+lp.vars <- hcris_2012 %>%
+  dplyr::select(beds, mcaid_discharges, penalty, ip_charges, 
+         mcare_discharges, tot_mcare_payment, price, bed_1, bed_2, bed_3, bed_4, bed_quartile) %>%
+  filter(complete.cases(.))
 
-# Matching with inverse variance distance
-match_iv <- matchit(penalty ~ bed_quartile,
-                    method = "nearest",
-                    distance = HCRIS_2012$inv_var,
-                    data = HCRIS_2012)
+# Remove 'penalty' and 'price' columns
+lp.covs <- lp.vars %>% dplyr::select(-penalty, -price)
 
-# Estimate ATE
-match_iv_ate <- summary(match_iv)$estimates["ATT"]
 
-# Matching with Mahalanobis distance on bed_quartile
-match_maha <- matchit(penalty ~ bed_quartile,
-                      method = "nearest",
-                      distance = "mahalanobis",
-                      data = HCRIS_2012)
+# Ensure X is extracted from the filtered dataset (lp.vars)
+m.nn.var2 <- Matching::Match(Y = lp.vars$price,  
+                             Tr = lp.vars$penalty,  
+                             X = as.matrix(lp.vars[, c("bed_1", "bed_2", "bed_3", "bed_4")]),  
+                             M = 1,   
+                             Weight = 2,  
+                             estimand = "ATE")
 
-# Estimate ATE
-match_maha_ate <- summary(match_maha)$estimates["ATT"]
 
-# Estimate Propensity Scores using a logistic regression
-weight_model <- weightit(penalty ~ bed_quartile, method = "ps", data = HCRIS_2012)
+# matching with mahalanobis
+m.nn.md <- Matching::Match(Y=lp.vars$price,
+                           Tr=lp.vars$penalty,
+                           X=lp.covs,
+                           M=1,
+                           Weight=2,
+                           estimand="ATE")      
 
-# Compute ATE using IPW
-HCRIS_2012$weights <- weight_model$weights
+# inverse propensity score
+logit.model <- glm(penalty ~ factor(bed_quartile) + mcaid_discharges + ip_charges + mcare_discharges +
+            tot_mcare_payment, family=binomial, data=lp.vars)
+ps <- fitted(logit.model)
+m.nn.ps <- Matching::Match(Y=lp.vars$price,
+                           Tr=lp.vars$penalty,
+                           X=ps,
+                           M=1,
+                           estimand="ATE")
 
-ipw_model <- lm(price ~ penalty, weights = weights, data = HCRIS_2012)
-ipw_ate <- coef(ipw_model)["penalty"]
+# regression technique
+reg.dat <- lp.vars %>% ungroup() %>% filter(complete.cases(.)) %>%
+  mutate(beds_diff = penalty*(beds - mean(beds)),
+         mcaid_diff = penalty*(mcaid_discharges - mean(mcaid_discharges)),
+         ip_diff = penalty*(ip_charges - mean(ip_charges)),
+         mcare_diff = penalty*(mcare_discharges - mean(mcare_discharges)),
+         mpay_diff = penalty*(tot_mcare_payment - mean(tot_mcare_payment)))
+reg <- lm(price ~ penalty + beds + bed_1 + bed_2 + bed_3 + bed_4 + mcaid_discharges + ip_charges + mcare_discharges + tot_mcare_payment + 
+            beds_diff + mcaid_diff + ip_diff + mcare_diff + mpay_diff,
+          data=reg.dat)
+summary(reg)
 
-# Fit the linear regression model
-lm_model <- lm(price ~ penalty * factor(bed_quartile), data = HCRIS_2012)
+# compiling table
+ate_nn_var2 <- m.nn.var2$est
+ate_nn_md <- m.nn.md$est
+ate_nn_ps <- m.nn.ps$est
+ate_reg <- coef(summary(reg))["penaltyTRUE", "Estimate"]
 
-# Extract ATE from the main treatment effect
-lm_ate <- coef(lm_model)["penalty"]
+# Compile results into a table
+estimands_table <- tibble(
+  Method = c("Inverse Variance Distance", "Mahalanobis Distance", "Inverse Propensity Weighting", "Simple Linear Regression"),
+  ATE = c(ate_nn_var2, ate_nn_md, ate_nn_ps, ate_reg)
+)
+
+# Display the table
+kable(estimands_table, caption = "Estimated Treatment Effects by Method")
 
 save.image("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/submission/hw_workspace.Rdata")

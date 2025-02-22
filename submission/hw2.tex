@@ -140,6 +140,8 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
+  pdftitle={HW2},
+  pdfauthor={Miracle Ephraim},
   colorlinks=true,
   linkcolor={blue},
   filecolor={Maroon},
@@ -148,10 +150,12 @@
   pdfcreator={LaTeX via pandoc}}
 
 
-\author{}
+\title{HW2}
+\author{Miracle Ephraim}
 \date{}
 
 \begin{document}
+\maketitle
 
 
 \begin{enumerate}
@@ -171,6 +175,13 @@
   Number of unique hospital ids
 \end{enumerate}
 
+\begin{verbatim}
+# A tibble: 1 x 1
+  Unique_hospital_ids
+                <int>
+1                  21
+\end{verbatim}
+
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \setcounter{enumi}{2}
@@ -188,18 +199,6 @@
 \item
   Distribution of price
 \end{enumerate}
-
-\begin{verbatim}
-Warning in self$trans$transform(x): NaNs produced
-\end{verbatim}
-
-\begin{verbatim}
-Warning: Transformation introduced infinite values in continuous y-axis
-\end{verbatim}
-
-\begin{verbatim}
-Warning: Removed 56084 rows containing non-finite values (`stat_ydensity()`).
-\end{verbatim}
 
 \includegraphics{hw2_files/figure-pdf/unnamed-chunk-4-1.pdf}
 
