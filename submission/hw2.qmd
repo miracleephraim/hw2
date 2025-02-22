@@ -92,3 +92,5 @@ kable(estimands_table, caption = "Estimated Treatment Effects by Method")
 8. Each of these estimators produce very different estimates. 
 9. Due to the limited number of penalized hospitals in the dataset, I do not believe the causal effect was properly captured. 
 10. For some reason, working with this data was difficult because running the same code with different people was producing different outputs, which was kind of frustrating. 
+
+**Github Repository Link:** [https://github.com/miracleephraim/hw2.git](https://github.com/miracleephraim/hw2.git)
