@@ -2,6 +2,14 @@
 #package installation and loading
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table, gdata)
+install.packages(c("MatchIt", "WeightIt", "lmtest", "sandwich", "Matching"))
+library(MatchIt)
+library(WeightIt)
+library(sandwich)
+library(lmtest)
+library(tidyr)
+library(knitr)
+
 #loading dataset
 final_HCRIS_data <- readRDS("C:/Users/mirac/Documents/GitHub/econ470_ma/hw2/data/HCRIS_Data.rds")
 
@@ -35,7 +43,7 @@ summarize(total = n())
 
 tibble(unique_hospital_ids = nrow(unique_provider_nos))
 
-### violin_plot of total charges
+### QUESTION 3 - violin_plot of total charges
 
 quantile(final_HCRIS_data$tot_charges, c(0.01, .75, .90, .95, .99), na.rm=TRUE)
 
@@ -73,7 +81,7 @@ ggplot(final_HCRIS_data_new, aes(as.factor(year), price)) +
   geom_violin(scale = 'width') +
   scale_y_continuous(trans='log10')
 
-# QUESTION 5
+# QUESTION 5 & 6
 
 # filtering to 2012 + making penalty
 hcris_2012 <- final_HCRIS_data %>% ungroup() %>%
@@ -133,13 +141,7 @@ avg_price4 <- hcris_2012 %>%
 group_by(bed_4) %>%
 summarise(avg_price = mean(price))
 
-# alt code
-library(dplyr)
-library(tidyr)
-library(knitr)
-
-library(dplyr)
-library(knitr)
+# alt code price calculations
 
 # Compute average price for each quartile group (inside and outside)
 avg_price1 <- hcris_2012 %>%
@@ -170,14 +172,7 @@ final_table <- bind_rows(avg_price1, avg_price2, avg_price3, avg_price4) %>%
 kable(final_table, caption = "Average Price by Bed Quartile Group")
 
 
-# calculating ATE
-#install.packages(c("MatchIt", "WeightIt", "lmtest", "sandwich", "Matching"))
-library(MatchIt)
-library(WeightIt)
-library(sandwich)
-library(lmtest)
-library(Matching)
-library(dplyr)
+# QUESTION 6 - calculating ATE
 
 # Select relevant variables and filter missing values
 lp.vars <- hcris_2012 %>%
